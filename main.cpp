@@ -1,41 +1,49 @@
 #include <iostream>
-#include <cassert>
 #include <thread>
 #include "LruCache.hpp"
 
+
 int fast_get_page_int(const int key) { return key; }
 
-// slow get page imitation
-int slow_get_page_int(const int key) {
-    std::cout << "< ... Network request ...";
-    std::cout.flush();
+template <typename Cache>
+int process_requests(Cache& cache, size_t amount) {
+    int hits_ = 0;
 
-    using namespace std::chrono_literals;
-    std::this_thread::sleep_for(1000ms);
-
-    std::cout << " Ok >" << std::endl;
-
-    return key;
-}
-
-int main() {
-    int hits = 0;
-    int miss = 0;
-    size_t size;
-    size_t amount;
-
-    std::cin >> size;
-    std::cin >> amount;
-
-    caches::LruCache<int, int> cache{size};
-
-    for (size_t i = 0; i < amount; i++) {
+    for (size_t i = 0; i < amount; ++i) {
         int page;
         std::cin >> page;
+
         if (cache.lookup_update(page, fast_get_page_int))
-            hits++;
-        else
-            miss++;
+            ++hits_;
+    }
+
+    return hits_;
+}
+
+int main(int argc, char* argv[]) {
+    int hits = 0;
+    size_t size;
+    size_t amount;
+    
+    if (argc != 2) {
+        std::cout << "Error: use with one argument.\n";
+        std::cout << "Usage: cashes [--lru|--lfu]\n";
+        return 1;
+    }
+
+    std::cin >> size >> amount;
+    
+    std::string_view mode{argv[1]};
+
+    if (mode == "--lru") {
+        caches::LruCache<int, int>  cache{size};
+        hits = process_requests(cache, amount);
+    } else if (mode == "--lfu") {
+        std::cout << "Error: not implemented.\n";
+        return 1;
+    } else {
+        std::cout << "Error: wrong argument.\n";
+        return 1;
     }
 
     std::cout << hits << std::endl;
