@@ -11,7 +11,7 @@ template <typename T, typename KeyT>
 class LruCache
 {
 private:
-    size_t size_;
+    size_t capacity_;
 
     std::list<std::pair<KeyT, T>> cache_;
 
@@ -20,10 +20,10 @@ private:
     std::unordered_map<KeyT, ListIt> hash_;
 
 public:
-    LruCache(size_t sz = 10) : size_(sz) {}
+    LruCache(size_t sz = 10) : capacity_(sz) {}
 
     bool full() const {
-        return (cache_.size() == size_);
+        return (cache_.size() == capacity_);
     }
 
     template <typename F>
@@ -33,6 +33,10 @@ public:
 template <typename T, typename KeyT>
 template <typename F>
 bool LruCache<T, KeyT>::lookup_update(KeyT key, F get_page) {
+
+    if (capacity_ == 0) {
+        return 0;
+    }
 
     auto hit = hash_.find(key);
 
